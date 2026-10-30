@@ -1,9 +1,9 @@
 export default {
   async fetch(request, env) {
-    // 1. 定义目标 KV 的密钥名称（Key）
+    // 1. 定义目标 KV 的密钥名称（已修改为大写 ADD.txt）
     const TARGET_KEY = "ADD.txt";
     
-    // 注意：这里的 env.KV 请替换为您在 Cloudflare 后台实际绑定的 KV 变量名称
+    // 注意：这里的 env.KV 请确保与您在 Cloudflare 后台绑定的 KV 变量名称大小写一致
     const kvStore = env.KV; 
 
     if (!kvStore) {
@@ -13,16 +13,16 @@ export default {
       });
     }
 
-    // 2. 处理网页表单提交（POST 请求：更新 add.txt 内容）
+    // 2. 处理网页表单提交（POST 请求：更新 ADD.txt 内容）
     if (request.method === "POST") {
       try {
         const formData = await request.formData();
         const newContent = formData.get("content") || "";
         
-        // 将新内容写入 KV 空间的 add.txt 中
+        // 将新内容写入 KV 空间的 ADD.txt 中
         await kvStore.put(TARGET_KEY, newContent);
         
-        return new Response( renderHTML(newContent, "✅ 保存成功！add.txt 内容已更新。"), {
+        return new Response(renderHTML(TARGET_KEY, newContent, `✅ 保存成功！${TARGET_KEY} 内容已更新。`), {
           headers: { "Content-Type": "text/html; charset=utf-8" }
         });
       } catch (err) {
@@ -30,17 +30,16 @@ export default {
       }
     }
 
-    // 3. 处理网页访问（GET 请求：读取当前 add.txt 内容并显示输入框）
+    // 3. 处理网页访问（GET 请求：读取当前 ADD.txt 内容并显示输入框）
     const currentContent = (await kvStore.get(TARGET_KEY)) || "";
-    return new Response(renderHTML(currentContent, ""), {
+    return new Response(renderHTML(TARGET_KEY, currentContent, ""), {
       headers: { "Content-Type": "text/html; charset=utf-8" }
     });
   }
 };
 
 // 辅助函数：生成简洁的网页输入界面
-function renderHTML(content, message) {
-  // 防止文本中包含特殊 HTML 字符导致文本框显示异常
+function renderHTML(keyName, content, message) {
   const safeContent = content
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -52,7 +51,7 @@ function renderHTML(content, message) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>编辑 KV - add.txt</title>
+  <title>编辑 KV - ${keyName}</title>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 680px; margin: 40px auto; padding: 0 20px; background: #f9fafb; }
     .card { background: #fff; padding: 24px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
@@ -65,10 +64,10 @@ function renderHTML(content, message) {
 </head>
 <body>
   <div class="card">
-    <h2>更改 KV 空间密钥：<code>add.txt</code></h2>
+    <h2>更改 KV 空间密钥：<code>${keyName}</code></h2>
     ${message ? `<div class="msg">${message}</div>` : ""}
     <form method="POST">
-      <textarea name="content" placeholder="在此直接输入 add.txt 的内容（支持多行）...">${safeContent}</textarea>
+      <textarea name="content" placeholder="在此直接输入 ${keyName} 的内容（支持多行）...">${safeContent}</textarea>
       <button type="submit">保存更改</button>
     </form>
   </div>
