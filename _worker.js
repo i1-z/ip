@@ -1,7 +1,7 @@
 export default {
   async fetch(request, env) {
     // 1. 定义目标 KV 的密钥名称（Key）
-    const TARGET_KEY = "add.txt";
+    const TARGET_KEY = "ADD.txt";
     
     // 注意：这里的 env.KV 请替换为您在 Cloudflare 后台实际绑定的 KV 变量名称
     const kvStore = env.KV; 
